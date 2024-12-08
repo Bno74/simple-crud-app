@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Management</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Product Management</h1>
+        <form id="productForm">
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" class="form-control" id="name" required>
+            </div>
+            <div class="form-group">
+                <label for="price">Price</label>
+                <input type="number" class="form-control" id="price" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label for="quantity">Quantity</label>
+                <input type="number" class="form-control" id="quantity" required>
+            </div>
+            <input type="hidden" id="productId">
+            <button type="submit" class="btn btn-primary">Add Product</button>
+        </form>
+
+        <h2 class="mt-5">Products</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="productList"></tbody>
+        </table>
+    </div>
+
+    <script>
+        // Fetch products on page load
+        async function fetchProducts() {
+            const response = await fetch('/api/products');
+            const products = await response.json();
+            const productList = document.getElementById('productList');
+            productList.innerHTML = '';
+
+            products.forEach(product => {
+                productList.innerHTML += `
+                    <tr>
+                        <td>${product._id}</td>
+                        <td>${product.name}</td>
+                        <td>$${product.price.toFixed(2)}</td>
+                        <td>${product.quantity}</td>
+                        <td>
+                            <button class="btn btn-warning" onclick="editProduct('${product._id}')">Edit</button>
+                            <button class="btn btn-danger" onclick="deleteProduct('${product._id}')">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Add product
+        document.getElementById('productForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const price = parseFloat(document.getElementById('price').value);
+            const quantity = parseInt(document.getElementById('quantity').value);
+            const productId = document.getElementById('productId').value;
+
+            const method = productId ? 'PUT' : 'POST';
+            const url = productId ? `/api/products/${productId}` : '/api/products';
+
+            await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name, price, quantity }) // Send name, price, and quantity
+            });
+
+            fetchProducts();
+            document.getElementById('productForm').reset();
+            document.getElementById('productId').value = ''; // Reset hidden input
+        });
+
+        // Delete product
+        async function deleteProduct(id) {
+            await fetch(`/api/products/${id}`, {
+                method: 'DELETE'
+            });
+            fetchProducts();
+        }
+
+        // Edit product
+        async function editProduct(id) {
+            const response = await fetch(`/api/products/${id}`);
+            const product = await response.json();
+
+            document.getElementById('name').value = product.name; // Update name field
+            document.getElementById('price').value = product.price; 
+            document.getElementById('quantity').value = product.quantity; // Update quantity field
+            document.getElementById('productId').value = product._id; // Set hidden input for update
+        }
+
+        // Initial fetch
+        fetchProducts();
+    </script>
+</body>
+</html>

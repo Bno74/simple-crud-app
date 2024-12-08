@@ -3,8 +3,13 @@ const mongoose = require("mongoose");
 const Product = require("./models/product.model.js");
 const app = express();
 
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(express.static('public'));
+
+
+
 
 
 
@@ -23,7 +28,7 @@ app.get('/api/products', async (req, res) => {
 
 });
 
-app.get('/api/product/:id', async (req, res) => {
+app.get('/api/products/:id', async (req, res) => {
 
     try {
         const { id } = req.params;
@@ -49,7 +54,7 @@ app.post('/api/products', async (req, res) => {
 
 
 //update a product
-app.put('/api/product/:id', async (req, res) => {
+app.put('/api/products/:id', async (req, res) => {
     try {
        const { id } = req.params;
         const product = await Product.findByIdAndUpdate(id, req.body);
@@ -69,7 +74,7 @@ app.put('/api/product/:id', async (req, res) => {
 });
 
 // delete a product
-app.delete('/api/product/:id', async (req, res) => {
+app.delete('/api/products/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const product = await Product.findByIdAndDelete(id);
@@ -87,10 +92,12 @@ app.delete('/api/product/:id', async (req, res) => {
 mongoose.connect("mongodb+srv://anhasami:hunterfury344@cluster0.iwycq3b.mongodb.net/API?retryWrites=true&w=majority&appName=Cluster0")
     .then(() => {
         console.log("Connected to database!");
-        app.listen(3000, () => {
+        app.listen(3000,'0.0.0.0', () => {
             console.log("Server is running on port 3000");
         });
     })
     .catch(() => {
         console.log("Connection failed!");
     });
+
+     
